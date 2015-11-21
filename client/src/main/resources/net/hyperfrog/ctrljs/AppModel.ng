@@ -1,0 +1,45 @@
+{
+/*
+  ControlsForm: 'AppModel'
+*/
+  Label1: {
+    Type: 'weLabel',
+    L: 20,
+    T: 20,
+    Data: { Text: 'Name:' }
+  },
+  Edit1: {
+    Type: 'weEdit',
+    L: 80,
+    T: 20,
+    W: 150,
+    DataBind: ng_Bindings({ Value: 'FirstName' })
+  },
+  Button1: {
+    Type: 'weButton',
+    L: 80,
+    T: 60,
+    Data: { Text: 'Say Hello' },
+    DataBind: ng_Bindings({ OnClick: 'sayHello' })
+  },
+  Message1: {
+    Type: 'weLabel',
+    L: 80,
+    T: 100,
+    DataBind: ng_Bindings({ Text: 'Message' })
+  },
+  wfrButton1: {
+    Type: 'wfrButton',
+    L: 320,
+    T: 65,
+    Data: { Text: 'Clear message' },
+    DataBind: ng_Bindings({ OnClick: 'clearMessage' })
+  },
+  Button2: {
+    Type: 'stdButton',
+    L: 191,
+    T: 60,
+    Data: { Text: 'Say Hi' },
+    DataBind: ng_Bindings({ OnClick: 'sayHi' })
+  }
+}

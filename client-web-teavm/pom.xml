@@ -1,0 +1,183 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>net.hyperfrog</groupId>
+        <artifactId>ctrljs-pom</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    
+    <groupId>net.hyperfrog</groupId>
+    <artifactId>ctrljs-web-teavm</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>ctrljs Client for Web - teavm</name>
+
+    <properties>
+        <netbeans.compile.on.save>none</netbeans.compile.on.save>
+        <project.mainclass>net.hyperfrog.ctrljs.BrowserMain</project.mainclass>
+    </properties>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>${project.mainclass}</mainClass>
+                            <addClasspath>true</addClasspath>
+                            <classpathPrefix>lib/</classpathPrefix>
+                            <useUniqueVersions>false</useUniqueVersions>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.9</version>
+                <executions>
+                    <execution>
+                        <id>unpack</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>unpack-dependencies</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <type>zip</type>
+                    <classifier>webpages</classifier>
+                    <overWrite>true</overWrite>
+                    <outputDirectory>target/web/pages</outputDirectory>
+                    <includes>*/**</includes>
+                </configuration>
+            </plugin>            
+            <plugin>
+                <groupId>org.teavm</groupId>
+                <artifactId>teavm-maven-plugin</artifactId>
+                <version>${teavm.version}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.teavm</groupId>
+                        <artifactId>teavm-classlib</artifactId>
+                        <!--<version>${teavm.version}</version>-->
+                        <version>0.4.0-SNAPSHOT</version>
+                    </dependency>
+                    <!-- This module adds html4j support. It mainly includes JavaScriptBuilder support.
+                    Also there are some little patches to JCL emulation, that are required to pass TCK -->
+                    <dependency>
+                        <groupId>org.teavm</groupId>
+                        <artifactId>teavm-html4j</artifactId>
+                        <version>${teavm.version}</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <id>generate-ctrljs</id>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <phase>process-classes</phase>
+                        <configuration>
+                            <mainClass>net.hyperfrog.ctrljs.BrowserMain</mainClass>
+                            <debugInformationGenerated>${teavm.debug}</debugInformationGenerated>
+                            <sourceMapsGenerated>${teavm.debug}</sourceMapsGenerated>
+                            <sourceFilesCopied>${teavm.debug}</sourceFilesCopied>
+                            <!-- Whether we want TeaVM to minify (obfuscate) the generated JavaScript -->
+                            <minifying>${teavm.minify}</minifying>
+                            <properties>
+                                <!-- This classes (separated with , ; space) will be available through vm.loadClass() -->
+                                <!--<html4j.entryPoints>net.hyperfrog.ctrljs.MainBrwsr</html4j.entryPoints>-->
+                            </properties>
+                            <!-- Don't include main page - we created it by ourselves -->
+                            <mainPageIncluded>false</mainPageIncluded>
+                            <!-- Merge runtime.js instead of putting as a separate file -->
+                            <runtime>MERGED</runtime>
+                            <!-- Name of the generated file -->
+                            <targetFileName>bck2brwsr.js</targetFileName>
+                            <targetDirectory>${project.build.directory}/teavm</targetDirectory>
+                            <!-- This transformer adds null checks before virtual calls. It is not included
+                            by default as we don't always need these null checks -->
+                            <transformers>
+                                <param>org.teavm.javascript.NullPointerExceptionTransformer</param>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.4</version>
+                <executions>
+                    <execution>
+                        <id>distro-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <descriptors>
+                                <descriptor>src/main/assembly/teabrwsr.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                    </execution>
+                </executions>                
+            </plugin>
+            <plugin>
+                <groupId>org.apidesign.bck2brwsr</groupId>
+                <artifactId>bck2brwsr-maven-plugin</artifactId>
+                <version>${bck2brwsr.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>brwsr</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <directory>${project.build.directory}/${project.build.finalName}-teabrwsr/public_html/</directory>
+                    <startpage>index.html</startpage>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <dependencies>
+        <dependency>
+            <groupId>net.hyperfrog</groupId>
+            <artifactId>ctrljs</artifactId>
+            <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.netbeans.html</groupId>
+                    <artifactId>net.java.html.boot.fx</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.html</groupId>
+            <artifactId>net.java.html.boot</artifactId>
+            <version>${net.java.html.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>asm</artifactId>
+                    <groupId>org.ow2.asm</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
+</project>
